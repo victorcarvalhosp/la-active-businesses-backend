@@ -34,6 +34,6 @@ Business.init(
   }
 );
 
-Business.sync({ force: true }).then(() =>
+Business.sync({ force: false, alter: true }).then(() =>
   console.log("Businesses table created")
 );
