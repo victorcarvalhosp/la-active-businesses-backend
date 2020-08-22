@@ -1,11 +1,11 @@
 // lib/models/node.model.ts
-import { Sequelize, Model, DataTypes, BuildOptions } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import { database } from "../config/database";
-import { Location } from "./Location";
 
-export class Business extends Model {
+export class Location extends Model {
   public id!: number;
   public name!: string;
+  public businessId!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -13,11 +13,12 @@ export class Business extends Model {
 /* define an interface which define properties we should receive from POST query. We only want to receive name property as String. 
 We’ll use this interface to cast req.body object properties. This will prevent user to inject a parameters who we not want to save in database. 
 This is a good practice. */
-export interface BusinessInterface {
+export interface LocationInterface {
   name: string;
+  projectId: number;
 }
 
-Business.init(
+Location.init(
   {
     id: {
       type: DataTypes.BIGINT,
@@ -28,19 +29,19 @@ Business.init(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    businessId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
   },
   {
-    tableName: "businesses",
+    tableName: "locations",
     sequelize: database, // this bit is important
   }
 );
 
-Business.hasMany(Location, {
-  sourceKey: "id",
-  foreignKey: "businessId",
-  as: "locations", // this determines the name in `associations`!
-});
+//Location.belongsTo(Business);
 
-Business.sync({ force: false, alter: true }).then(() =>
-  console.log("Businesses table created")
+Location.sync({ force: false, alter: true }).then(() =>
+  console.log("Locations table created")
 );
