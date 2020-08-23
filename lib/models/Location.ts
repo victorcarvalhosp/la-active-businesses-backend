@@ -32,6 +32,8 @@ Location.init(
     businessId: {
       type: DataTypes.BIGINT,
       allowNull: false,
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   },
   {

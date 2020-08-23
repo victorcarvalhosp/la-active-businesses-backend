@@ -10,6 +10,9 @@ export class Routes {
     app.route("/").get(this.businessesController.index);
 
     app
+      .route("/businesses/import")
+      .get(this.businessesController.importDataFromOpenBusinessAPI);
+    app
       .route("/businesses")
       .get(this.businessesController.index)
       .post(this.businessesController.create);
