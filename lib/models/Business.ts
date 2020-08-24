@@ -12,9 +12,6 @@ export class Business extends Model {
   public readonly updatedAt!: Date;
 }
 
-/* define an interface which define properties we should receive from POST query. We only want to receive name property as String. 
-We’ll use this interface to cast req.body object properties. This will prevent user to inject a parameters who we not want to save in database. 
-This is a good practice. */
 export interface BusinessInterface {
   id?: number;
   name: string;

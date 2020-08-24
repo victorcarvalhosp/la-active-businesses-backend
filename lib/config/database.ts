@@ -13,3 +13,10 @@ export const database = new Sequelize(
     },
   }
 );
+
+/* If you want to run the database in memory, please comment the code above and use this one below
+export const database = new Sequelize({
+  database: dbConfig.DB,
+  dialect: "sqlite",
+  storage: ":memory:",
+}); */
