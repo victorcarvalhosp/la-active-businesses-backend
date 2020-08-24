@@ -13,7 +13,7 @@ As a user using the application
 I want to be able to click a button and have it show me the oldest business
 Because I want to be able to tell which one it is
 
-
+# Proposed Solution
 Based on that, we need to retrieve the data from the API and parse it in a way that makes it easier for the front-end to quickly have these informations.
 
 It's important to notice 4 things in the API:  
