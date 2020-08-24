@@ -30,7 +30,7 @@ This creates two tables in the database - business and locations - and we have t
 # business:
 id, name, startDate, totalLocations, createdAt, updatedAt.
 # locations:
-public id, name, businessId, city, locationDescription, naics, createdAt, updatedAt.
+id, name, businessId, city, locationDescription, naics, createdAt, updatedAt.
 
 This way the front-end can just access the /businesses endpoint and easilly get the data ordered by the business with most locations, older businesses or by name.
 By default it's ordered by name, but you just need to pass the orderBy query param to get the desired results:
