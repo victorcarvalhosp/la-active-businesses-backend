@@ -187,6 +187,15 @@ export class BusinessesController {
     return Business.findByPk<Business>(id);
   }
 
+  public listLocations(businessId: number) {
+    return Location.findAll<Location>({
+      where: {
+        businessId: businessId,
+      },
+      order: [["name", "ASC"]],
+    });
+  }
+
   public delete(id: number) {
     const options: DestroyOptions = {
       where: { id: id },
