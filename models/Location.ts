@@ -6,6 +6,9 @@ export class Location extends Model {
   public id!: number;
   public name!: string;
   public businessId!: number;
+  public city!: string;
+  public locationDescription!: string;
+  public naics: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -35,14 +38,24 @@ Location.init(
       onUpdate: "CASCADE",
       onDelete: "CASCADE",
     },
+    city: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    locationDescription: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    naics: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "locations",
     sequelize: database, // this bit is important
   }
 );
-
-//Location.belongsTo(Business);
 
 Location.sync({ force: false, alter: true }).then(() =>
   console.log("Locations table created")

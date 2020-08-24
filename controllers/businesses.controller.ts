@@ -13,7 +13,7 @@ interface BusinessAPI {
 }
 
 export class BusinessesController {
-  public async importDataFromOpenBusinessAPI(req: Request, res: Response) {
+  public async importDataFromOpenBusinessAPI() {
     Location.destroy({
       where: {},
       truncate: true,
@@ -37,8 +37,6 @@ export class BusinessesController {
 
     const totalCount = bodyCount[0].count_0;
 
-    console.log(totalCount);
-
     let totalLocations = 0;
     while (totalLocations <= totalCount) {
       const body: any[] = await got
@@ -57,65 +55,88 @@ export class BusinessesController {
         const locationStartDate = new Date(location.location_start_date);
 
         if (parentBusinessesMap.get(location.business_name)) {
-          const actualBusiness: BusinessInterface = parentBusinessesMap.get(
-            location.business_name
+          await this.updateBusinessAndInsertNewLocation(
+            parentBusinessesMap,
+            location,
+            locationStartDate
           );
-
-          const updatedBusiness: BusinessInterface = {
-            ...actualBusiness,
-            startDate: isBefore(locationStartDate, actualBusiness.startDate)
-              ? locationStartDate
-              : actualBusiness.startDate,
-            totalLocations: actualBusiness.totalLocations + 1,
-          };
-          parentBusinessesMap.set(location.business_name, updatedBusiness);
-
-          const update: UpdateOptions = {
-            where: { id: actualBusiness.id },
-            limit: 1,
-          };
-
-          await Business.update(updatedBusiness, update);
-
-          await Location.create<Location>({
-            name: location.business_name,
-            businessId: actualBusiness.id,
-          });
         } else {
-          const business: BusinessInterface = {
-            name: location.business_name,
-            startDate: location.location_start_date ? locationStartDate : null,
-            totalLocations: 1,
-          };
-          const businessDb = await Business.create<Business>(business);
-          const locationDb = await Location.create<Location>({
-            name: businessDb.name,
-            businessId: businessDb.id,
-          });
-          parentBusinessesMap.set(location.business_name, {
-            id: businessDb.id,
-            ...business,
-          });
-          console.log(businessDb.id);
+          await this.insertBusinessAndLocationForTheFirstTime(
+            location,
+            locationStartDate,
+            parentBusinessesMap
+          );
         }
       }
     }
     /* Still need to loop into the API to get all records */
-
-    res.json({ status: "completed" });
-    res.end();
+    return { status: "completed" };
     // console.log(parentBusinessesMap);
   }
 
-  public index(req: Request, res: Response) {
+  private async updateBusinessAndInsertNewLocation(
+    parentBusinessesMap: Map<string, BusinessInterface>,
+    location: any,
+    locationStartDate: Date
+  ) {
+    const actualBusiness: BusinessInterface = parentBusinessesMap.get(
+      location.business_name
+    );
+
+    const updatedBusiness: BusinessInterface = {
+      ...actualBusiness,
+      startDate: isBefore(locationStartDate, actualBusiness.startDate)
+        ? locationStartDate
+        : actualBusiness.startDate,
+      totalLocations: actualBusiness.totalLocations + 1,
+    };
+    await this.update(actualBusiness.id, updatedBusiness);
+
+    await Location.create<Location>({
+      name: location.business_name,
+      businessId: actualBusiness.id,
+      city: location.city,
+      locationDescription: location.location_description,
+      naics: location.naics,
+    });
+
+    parentBusinessesMap.set(location.business_name, updatedBusiness);
+  }
+
+  private async insertBusinessAndLocationForTheFirstTime(
+    location: any,
+    locationStartDate: Date,
+    parentBusinessesMap: Map<string, BusinessInterface>
+  ) {
+    const business: BusinessInterface = {
+      name: location.business_name,
+      startDate: location.location_start_date ? locationStartDate : null,
+      totalLocations: 1,
+    };
+    const businessDb = await this.create(business);
+    await Location.create<Location>({
+      name: businessDb.name,
+      businessId: businessDb.id,
+      city: location.city,
+      locationDescription: location.location_description,
+      naics: location.naics,
+    });
+    parentBusinessesMap.set(location.business_name, {
+      id: businessDb.id,
+      ...business,
+    });
+    console.log(businessDb.id);
+  }
+
+  public list(queryParams) {
     let offset: number = 0;
-    if (req.query && req.query.offset) {
-      offset = Number.parseInt((req.query as any).offset);
+    if (queryParams && queryParams.offset) {
+      offset = Number.parseInt((queryParams as any).offset);
     }
     let orderBy = "name";
     let order = "ASC";
-    if (req.query && req.query.orderBy) {
-      switch ((req.query as any).orderBy) {
+    if (queryParams && queryParams.orderBy) {
+      switch ((queryParams as any).orderBy) {
         case "startDate":
           orderBy = "startDate";
           order = "ASC";
@@ -129,66 +150,44 @@ export class BusinessesController {
           order = "ASC";
       }
     }
-    Business.findAll<Business>({
+    return Business.findAll<Business>({
       where: {
         name: {
           [Op.like]:
-            req.query && req.query.name ? `%${(req.query as any).name}%` : "%",
+            queryParams && queryParams.name
+              ? `%${(queryParams as any).name}%`
+              : "%",
         },
       },
       offset: offset,
       limit: 50,
       order: [[orderBy, order]],
-    })
-      .then((businesses: Array<Business>) => res.json(businesses))
-      .catch((err: Error) => res.status(500).json(err));
+    });
   }
 
-  public create(req: Request, res: Response) {
-    const params: BusinessInterface = req.body;
-
-    Business.create<Business>(params)
-      .then((business: Business) => res.status(201).json(business))
-      .catch((err: Error) => res.status(500).json(err));
+  public create(business: BusinessInterface) {
+    return Business.create<Business>(business);
   }
 
-  public update(req: Request, res: Response) {
-    const businessId: number = Number.parseInt(req.params.id);
-    const params: BusinessInterface = req.body;
-
+  public update(id: number, business: BusinessInterface) {
     const update: UpdateOptions = {
-      where: { id: businessId },
+      where: { id: id },
       limit: 1,
     };
 
-    Business.update(params, update)
-      .then(() => res.status(202).json({ data: "success" }))
-      .catch((err: Error) => res.status(500).json(err));
+    return Business.update(business, update);
   }
 
-  public show(req: Request, res: Response) {
-    const businessId: number = Number.parseInt(req.params.id);
-
-    Business.findByPk<Business>(businessId)
-      .then((business: Business | null) => {
-        if (business) {
-          res.json(business);
-        } else {
-          res.status(404).json({ errors: ["Business not found"] });
-        }
-      })
-      .catch((err: Error) => res.status(500).json(err));
+  public show(id: number) {
+    return Business.findByPk<Business>(id);
   }
 
-  public delete(req: Request, res: Response) {
-    const businessId: number = Number.parseInt(req.params.id);
+  public delete(id: number) {
     const options: DestroyOptions = {
-      where: { id: businessId },
+      where: { id: id },
       limit: 1,
     };
 
-    Business.destroy(options)
-      .then(() => res.status(204).json({ data: "success" }))
-      .catch((err: Error) => res.status(500).json(err));
+    return Business.destroy(options);
   }
 }
