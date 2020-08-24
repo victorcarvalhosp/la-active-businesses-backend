@@ -10,6 +10,12 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["lib/**/*.ts"],
+  "include": [
+    "lib/**/*.ts",
+    "config/db.config.ts",
+    "server.ts",
+    "routes/routes.ts",
+    "app.ts"
+  ],
   "exclude": ["node_modules"]
 }

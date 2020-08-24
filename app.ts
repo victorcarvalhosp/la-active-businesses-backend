@@ -1,7 +1,7 @@
 // lib/app.ts
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { Routes } from "./config/routes";
+import { Routes } from "./routes/routes";
 var cors = require("cors");
 
 class App {

@@ -1,6 +1,6 @@
 // lib/models/node.model.ts
-import { Sequelize, Model, DataTypes, BuildOptions } from "sequelize";
-import { database } from "../config/database";
+import { DataTypes, Model } from "sequelize";
+import { database } from "../lib/database";
 import { Location } from "./Location";
 
 export class Business extends Model {

@@ -1,13 +1,11 @@
 import { isBefore } from "date-fns";
 import { Request, Response } from "express";
 import got from "got";
-import { DestroyOptions, UpdateOptions } from "sequelize/types";
-import { Business } from "../models/Business";
-import { Location } from "../models/Location";
-import { database } from "./../config/database";
-import { API_AUTHORIZATION_TOKEN } from "./../config/env.config";
-import { BusinessInterface } from "./../models/Business";
 import { Op } from "sequelize";
+import { DestroyOptions, UpdateOptions } from "sequelize/types";
+import { API_AUTHORIZATION_TOKEN } from "../config/env.config";
+import { Business, BusinessInterface } from "../models/Business";
+import { Location } from "../models/Location";
 
 interface BusinessAPI {
   business_name: string;

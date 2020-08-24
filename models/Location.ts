@@ -1,6 +1,6 @@
 // lib/models/node.model.ts
 import { DataTypes, Model } from "sequelize";
-import { database } from "../config/database";
+import { database } from "../lib/database";
 
 export class Location extends Model {
   public id!: number;
