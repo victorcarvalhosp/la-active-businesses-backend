@@ -14,17 +14,17 @@ I want to be able to click a button and have it show me the oldest business
 Because I want to be able to tell which one it is
 
 # Proposed Solution
-Based on that, we need to retrieve the data from the API and parse it in a way that makes it easier for the front-end to quickly have these informations.
+Based on that, we need to retrieve the data from the API and parse it in a way that makes it easier for the front-end to quickly have these informations at hand. I'm assuming that this will be used in a public government portal where everyone will have access to this information.
 
 It's important to notice 4 things in the API:  
 - It has more than 500,000 rows 
 - We're not allowed to use the API filters
-- Each row is a business location - A business can have more than one location, this means that the same business can appear more than once in the API
+- Each row is a business location - A business can have more than one location, this means that the same business can appear more than once in the API results
 - The API has a monthly update interval.
 
-As teh client wants to know the businesses with the most locations, would be impossible to iterate over all the API rows to bring back the results, so we'll have a database to store that parsed data!
-For the sake of the exercise, a public endpoint was made to import the data to a MySQL database - /businesses/import/ - of course in a real-word scenario that would be a private cron-job, or some routine that runs once a month to update the data.
-As it has more than 500,000 rows this import can take a while, if you just want to test it, feel free to run it for a few minutes and then stop it and at least you'll have some real data to take a look.
+As the client wants to know the businesses with the most locations, would be impossible to iterate over all the API rows to bring back the results, so we'll have a database to store that parsed data!
+For the sake of the exercise, a public endpoint was made to import the data to a MySQL database - /businesses/import/ - of course in a real-word scenario that would be a private cron-job, or some other routine that runs once a month to update the data.
+As it has more than 500,000 rows this import can take a while, if you just want to test it, feel free to run it for a few minutes and then stop it - at least you'll have some real world data to take a look. As this will be updated just once a month there's no problem to run this time-consuming processing.
 
 This creates two tables in the database - business and locations - and we have the following columns on these table:
 # business:
@@ -52,4 +52,5 @@ You can see the front-end for this application [here](https://github.com/victorc
 
 #To-do:
 [ ] Increase test coverage
+[ ] Improve import routine - Right now it's just deleting all the database and import everything again, this would cause the application to have missing information for a period of time - A better approach would be to verify if the row already exists and then just update/insert when necessary.
 
