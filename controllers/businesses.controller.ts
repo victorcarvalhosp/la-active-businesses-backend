@@ -7,26 +7,17 @@ import { API_AUTHORIZATION_TOKEN } from "../config/env.config";
 import { Business, BusinessInterface } from "../models/Business";
 import { Location } from "../models/Location";
 
-interface BusinessAPI {
+interface BusinessAPIInterface {
   business_name: string;
+  city: string;
+  location_description: string;
   naics: string;
+  location_start_date: string;
 }
 
 export class BusinessesController {
   public async importDataFromOpenBusinessAPI() {
-    Location.destroy({
-      where: {},
-      truncate: true,
-      force: true,
-      cascade: true,
-      restartIdentity: true,
-    }).then(async () => {
-      await Business.destroy({
-        where: {},
-        truncate: true,
-        cascade: true,
-      });
-    });
+    await this.clearDatabase();
 
     const bodyCount = await got
       .get(
@@ -46,7 +37,7 @@ export class BusinessesController {
         )
         .json();
 
-      const locations: any[] = [...body];
+      const locations: BusinessAPIInterface[] = [...body];
 
       const parentBusinessesMap: Map<string, BusinessInterface> = new Map();
 
@@ -69,9 +60,23 @@ export class BusinessesController {
         }
       }
     }
-    /* Still need to loop into the API to get all records */
     return { status: "completed" };
-    // console.log(parentBusinessesMap);
+  }
+
+  private clearDatabase() {
+    return Location.destroy({
+      where: {},
+      truncate: true,
+      force: true,
+      cascade: true,
+      restartIdentity: true,
+    }).then(async () => {
+      await Business.destroy({
+        where: {},
+        truncate: true,
+        cascade: true,
+      });
+    });
   }
 
   private async updateBusinessAndInsertNewLocation(
