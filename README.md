@@ -50,7 +50,7 @@ You can request the business locations detailed data using the `/business/:id/lo
 
 You can see the front-end for this application [here](https://github.com/victorcarvalhosp/la-active-businesses-frontend)
 
-#To-do:
-[ ] Increase test coverage
-[ ] Improve import routine - Right now it's just deleting all the database and import everything again, this would cause the application to have missing information for a period of time - A better approach would be to verify if the row already exists and then just update/insert when necessary.
+# To-do:
+- [ ] Increase test coverage
+- [ ] Improve import routine - Right now it's just deleting all the tables and importing everything again, this would cause the application to have missing information for a period of time - A better approach would be to verify if the row already exists and then just update/insert when necessary.
 
