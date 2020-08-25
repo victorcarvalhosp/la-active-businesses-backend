@@ -32,7 +32,7 @@ id, name, startDate, totalLocations, createdAt, updatedAt.
 # locations:
 id, name, businessId, city, locationDescription, naics, createdAt, updatedAt.
 
-This way the front-end can just access the /businesses endpoint and easilly get the data ordered by the business with most locations, older businesses or by name.
+This way the front-end can just access the /businesses endpoint and easilly get the data ordered by the businesses with most locations, older businesses or by name.
 By default it's ordered by name, but you just need to pass the orderBy query param to get the desired results:
 `?orderBy=startDate`
 `?orderBy=totalLocations`
