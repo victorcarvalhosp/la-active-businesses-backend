@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import got from "got";
 import { Op } from "sequelize";
 import { DestroyOptions, UpdateOptions } from "sequelize/types";
-import { API_AUTHORIZATION_TOKEN } from "../config/env.config";
+import { API_AUTHORIZATION_TOKEN, API_URL } from "../config/env.config";
 import { Business, BusinessInterface } from "../models/Business";
 import { Location } from "../models/Location";
 
@@ -17,13 +17,10 @@ interface BusinessAPIInterface {
 
 export class BusinessesController {
   public async importDataFromOpenBusinessAPI() {
-    await this.clearDatabase();
+    this.clearDatabase();
 
     const bodyCount = await got
-      .get(
-        `https://data.lacity.org/api/id/6rrh-rzua.json?$query=select+count(0)`,
-        { responseType: "json" }
-      )
+      .get(`${API_URL}?$query=select+count(0)`, { responseType: "json" })
       .json();
 
     const totalCount = bodyCount[0].count_0;
@@ -32,7 +29,7 @@ export class BusinessesController {
     while (totalLocations <= totalCount) {
       const body: any[] = await got
         .get(
-          `https://data.lacity.org/resource/6rrh-rzua.json?$$app_token=${API_AUTHORIZATION_TOKEN}&$order=:id&$limit=5000&$offset=${totalLocations}`,
+          `${API_URL}?$$app_token=${API_AUTHORIZATION_TOKEN}&$order=:id&$limit=5000&$offset=${totalLocations}`,
           { responseType: "json" }
         )
         .json();
@@ -41,7 +38,7 @@ export class BusinessesController {
 
       const parentBusinessesMap: Map<string, BusinessInterface> = new Map();
 
-      for (let location of locations) {
+      for (const location of locations) {
         totalLocations++;
         const locationStartDate = new Date(location.location_start_date);
 
@@ -63,19 +60,19 @@ export class BusinessesController {
     return { status: "completed" };
   }
 
-  private clearDatabase() {
-    return Location.destroy({
+  private async clearDatabase() {
+    await Location.destroy({
       where: {},
       truncate: true,
       force: true,
       cascade: true,
       restartIdentity: true,
-    }).then(async () => {
-      await Business.destroy({
-        where: {},
-        truncate: true,
-        cascade: true,
-      });
+    });
+
+    await Business.destroy({
+      where: {},
+      truncate: true,
+      cascade: true,
     });
   }
 
@@ -96,14 +93,7 @@ export class BusinessesController {
       totalLocations: actualBusiness.totalLocations + 1,
     };
     await this.update(actualBusiness.id, updatedBusiness);
-
-    await Location.create<Location>({
-      name: location.business_name,
-      businessId: actualBusiness.id,
-      city: location.city,
-      locationDescription: location.location_description,
-      naics: location.naics,
-    });
+    await this.insertLocation(actualBusiness.id, location);
 
     parentBusinessesMap.set(location.business_name, updatedBusiness);
   }
@@ -119,18 +109,26 @@ export class BusinessesController {
       totalLocations: 1,
     };
     const businessDb = await this.create(business);
-    await Location.create<Location>({
-      name: businessDb.name,
-      businessId: businessDb.id,
-      city: location.city,
-      locationDescription: location.location_description,
-      naics: location.naics,
-    });
+    await this.insertLocation(businessDb.id, location);
     parentBusinessesMap.set(location.business_name, {
       id: businessDb.id,
       ...business,
     });
-    console.log(businessDb.id);
+  }
+
+  private async insertLocation(
+    businessId: number,
+    location: BusinessAPIInterface
+  ) {
+    await Location.create<Location>({
+      name: location.business_name,
+      businessId: businessId,
+      city: location.city ? location.city : "",
+      locationDescription: location.location_description
+        ? location.location_description
+        : "",
+      naics: location.naics ? location.naics : "",
+    });
   }
 
   public list(queryParams) {
